@@ -148,6 +148,64 @@ async function addActorToMovie(actorName, movieTitle, roles) {
     }
 }
 
+// --- Function to get a Movie node by its title ---
+async function getMovieByTitle(title) {
+    let session;
+    try {
+        session = driver.session({ database: 'neo4j' });
+        const query = `
+            MATCH (m:Movie {title: $title})
+            RETURN m
+        `;
+        const result = await session.run(query, { title });
+
+        if (result.records.length > 0) {
+            const movie = result.records[0].get('m');
+            console.log(`[Query Result]: Found Movie: '${movie.properties.title}' (Released: ${movie.properties.released}, Tagline: '${movie.properties.tagline}')`);
+            return movie; // Return the full node object
+        } else {
+            console.log(`[Query Result]: Movie with title '${title}' not found.`);
+            return null; // Return null if not found
+        }
+    } catch (error) {
+        console.error(`Error getting movie by title '${title}':`, error);
+        throw error;
+    } finally {
+        if (session) {
+            await session.close();
+        }
+    }
+}
+
+// --- Function to get a Person node by their name ---
+async function getPersonByName(name) {
+    let session;
+    try {
+        session = driver.session({ database: 'neo4j' });
+        const query = `
+            MATCH (p:Person {name: $name})
+            RETURN p
+        `;
+        const result = await session.run(query, { name });
+
+        if (result.records.length > 0) {
+            const person = result.records[0].get('p');
+            console.log(`[Query Result]: Found Person: '${person.properties.name}' (Born: ${person.properties.born})`);
+            return person; // Return the full node object
+        } else {
+            console.log(`[Query Result]: Person with name '${name}' not found.`);
+            return null; // Return null if not found
+        }
+    } catch (error) {
+        console.error(`Error getting person by name '${name}':`, error);
+        throw error;
+    } finally {
+        if (session) {
+            await session.close();
+        }
+    }
+}
+
 
 // --- Main execution block to demonstrate functionality ---
 
@@ -195,6 +253,14 @@ async function main() {
 
         await addActorToMovie('Uma Thurman', 'Pulp Fiction', ['Mia Wallace']);
         await addActorToMovie('John Travolta', 'Pulp Fiction', ['Vincent Vega']);
+
+
+                // --- New: Demonstrating Basic Query Functions ---
+        console.log('\n--- Querying Data (Basic Reads) ---');
+        await getMovieByTitle('The Matrix');
+        await getPersonByName('Keanu Reeves');
+        await getMovieByTitle('Non Existent Movie'); // Test for not found
+        await getPersonByName('Non Existent Person'); // Test for not found
 
 
     } catch (error) {
