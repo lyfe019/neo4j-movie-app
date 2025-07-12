@@ -1,5 +1,3 @@
-// app.js
-
 // Import the neo4j-driver module
 import neo4j from 'neo4j-driver';
 
