@@ -71,11 +71,45 @@ async function addMovie(title, released, tagline) {
     }
 }
 
+
+
+// --- Function to create unique constraints for Movie titles and Person names ---
+async function createConstraints() {
+    let session;
+    try {
+        session = driver.session({ database: 'neo4j' });
+
+        // Create a unique constraint on the 'title' property of 'Movie' nodes
+        // IF NOT EXISTS ensures it doesn't throw an error if the constraint already exists.
+        await session.run('CREATE CONSTRAINT IF NOT EXISTS FOR (m:Movie) REQUIRE m.title IS UNIQUE');
+        console.log('[Constraint Created]: Unique constraint on Movie(title)');
+
+        // Create a unique constraint on the 'name' property of 'Person' nodes
+        await session.run('CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE');
+        console.log('[Constraint Created]: Unique constraint on Person(name)');
+
+    } catch (error) {
+        console.error('Error creating constraints:', error);
+        throw error; // Propagate the error if constraint creation fails
+    } finally {
+        if (session) {
+            await session.close();
+        }
+    }
+}
+
+
+
 // --- Main execution block to demonstrate functionality ---
 
 async function main() {
     try {
         await testConnection(); // First, ensure database connection is working
+
+
+
+        console.log('\n--- Creating Constraints ---');
+        await createConstraints(); // 2. Create constraints first
 
         console.log('\n--- Adding/Updating Movies ---');
         await addMovie('The Matrix', 1999, 'Welcome to the Real World.');
