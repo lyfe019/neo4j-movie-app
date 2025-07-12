@@ -1,0 +1,24 @@
+{
+  "name": "neo4j-movie-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyfe019/neo4j-movie-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+"type": "module",
+  "bugs": {
+    "url": "https://github.com/lyfe019/neo4j-movie-app/issues"
+  },
+  "homepage": "https://github.com/lyfe019/neo4j-movie-app#readme",
+  "dependencies": {
+    "neo4j-driver": "^5.28.1"
+  }
+}
