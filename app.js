@@ -207,6 +207,74 @@ async function getPersonByName(name) {
 }
 
 
+// --- Function to get all movies an actor has acted in ---
+async function getMoviesByActor(actorName) {
+    let session;
+    try {
+        session = driver.session({ database: 'neo4j' });
+        const query = `
+            MATCH (p:Person {name: $actorName})-[:ACTED_IN]->(m:Movie)
+            RETURN m.title AS title, m.released AS released, m.tagline AS tagline
+        `;
+        const result = await session.run(query, { actorName });
+        const movies = result.records.map(record => ({
+            title: record.get('title'),
+            released: record.get('released'),
+            tagline: record.get('tagline')
+        }));
+
+        if (movies.length > 0) {
+            console.log(`\n[Query Result]: Movies acted in by '${actorName}':`);
+            movies.forEach(movie => console.log(`  - ${movie.title} (${movie.released}) - "${movie.tagline}"`));
+            return movies; // Return the list of movies
+        } else {
+            console.log(`\n[Query Result]: No movies found for actor '${actorName}'.`);
+            return []; // Return an empty array if no movies are found
+        }
+    } catch (error) {
+        console.error(`Error getting movies by actor '${actorName}':`, error);
+        throw error;
+    } finally {
+        if (session) {
+            await session.close();
+        }
+    }
+}
+
+// --- Function to get all actors in a specific movie and their roles ---
+async function getActorsInMovie(movieTitle) {
+    let session;
+    try {
+        session = driver.session({ database: 'neo4j' });
+        const query = `
+            MATCH (p:Person)-[r:ACTED_IN]->(m:Movie {title: $movieTitle})
+            RETURN p.name AS actorName, r.roles AS roles
+        `;
+        const result = await session.run(query, { movieTitle });
+        const actorsWithRoles = result.records.map(record => ({
+            actorName: record.get('actorName'),
+            roles: record.get('roles')
+        }));
+
+        if (actorsWithRoles.length > 0) {
+            console.log(`\n[Query Result]: Actors in '${movieTitle}':`);
+            actorsWithRoles.forEach(actor => console.log(`  - ${actor.actorName} as ${actor.roles.join(', ')}`));
+            return actorsWithRoles; // Return the list of actors with their roles
+        } else {
+            console.log(`\n[Query Result]: No actors found for movie '${movieTitle}'.`);
+            return []; // Return an empty array if no actors are found
+        }
+    } catch (error) {
+        console.error(`Error getting actors in movie '${movieTitle}':`, error);
+        throw error;
+    } finally {
+        if (session) {
+            await session.close();
+        }
+    }
+}
+
+
 // --- Main execution block to demonstrate functionality ---
 
 async function main() {
@@ -261,6 +329,14 @@ async function main() {
         await getPersonByName('Keanu Reeves');
         await getMovieByTitle('Non Existent Movie'); // Test for not found
         await getPersonByName('Non Existent Person'); // Test for not found
+
+        // --- New: Demonstrating Relationship Query Functions ---
+        console.log('\n--- Querying Relationships ---');
+        await getMoviesByActor('Keanu Reeves');
+        await getActorsInMovie('The Matrix');
+        await getMoviesByActor('Non Existent Actor'); // Test for not found
+        await getActorsInMovie('Non Existent Movie Title'); // Test for not found
+
 
 
     } catch (error) {
